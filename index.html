@@ -1,62 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Plex Server Status</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; background:#111; color:#eee; }
-    header { padding:20px; text-align:center; background:#202020; }
-    h1 { margin:0; }
-    .container { max-width:800px; margin:40px auto; padding:0 20px; }
-    .status { padding:20px; border-radius:10px; margin-bottom:20px; }
-    .operational { background:#1f6f3e; }
-    .maintenance { background:#8a6d1f; }
-    .outage { background:#7a1f1f; }
-    .card { background:#1a1a1a; padding:20px; border-radius:10px; margin-bottom:20px; }
-    .time { opacity:0.7; font-size:0.9em; }
-    footer { text-align:center; padding:20px; opacity:0.6; }
-  </style>
+<meta charset="UTF-8">
+<title>Plex Server Status</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background:#0f0f0f;
+  color:#e6e6e6;
+}
+
+header{
+  background:#1c1c1c;
+  padding:28px;
+  text-align:center;
+  border-bottom:1px solid #2a2a2a;
+}
+
+h1{
+  margin:0;
+  font-weight:600;
+}
+
+.container{
+  max-width:900px;
+  margin:40px auto;
+  padding:0 20px;
+}
+
+.status{
+  border-radius:12px;
+  padding:26px;
+  margin-bottom:28px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.operational{ background:#123b2c; }
+.maintenance{ background:#3f3511; }
+.outage{ background:#3a1414; }
+
+.status-title{
+  font-size:22px;
+  font-weight:600;
+}
+
+.status-message{
+  opacity:.9;
+}
+
+.card{
+  background:#1a1a1a;
+  border-radius:12px;
+  padding:22px;
+  margin-bottom:22px;
+  border:1px solid #2a2a2a;
+}
+
+.card h3{
+  margin-top:0;
+}
+
+.update{
+  margin-bottom:10px;
+}
+
+.time{
+  opacity:.6;
+  font-size:13px;
+}
+
+footer{
+  text-align:center;
+  padding:30px;
+  opacity:.6;
+  font-size:14px;
+}
+</style>
 </head>
+
 <body>
 
 <header>
-  <h1>Plex Server Status</h1>
+<h1>Plex Server Status</h1>
 </header>
 
 <div class="container">
 
-  <div id="statusBox" class="status">
-    <h2 id="statusTitle"></h2>
-    <p id="statusMessage"></p>
-  </div>
+<div id="statusBox" class="status">
+<div class="status-title" id="statusTitle"></div>
+<div class="status-message" id="statusMessage"></div>
+</div>
 
-  <div class="card">
-    <h3>Maintenance Window</h3>
-    <p id="maintenanceWindow"></p>
-  </div>
+<div class="card">
+<h3>Scheduled Maintenance</h3>
+<div id="maintenanceWindow"></div>
+</div>
 
-  <div class="card">
-    <h3>Updates</h3>
-    <ul id="updates"></ul>
-  </div>
+<div class="card">
+<h3>Recent Updates</h3>
+<div id="updates"></div>
+</div>
 
 </div>
 
 <footer>
-  Last updated: <span id="lastUpdated"></span>
+Last updated: <span id="lastUpdated"></span>
 </footer>
 
 <script>
-const statusData = {
-  status: "operational", // operational | maintenance | outage
-  title: "All Systems Operational",
-  message: "The Plex server is running normally.",
-  maintenanceWindow: "Planned server outages between 8PM-8AM PST from 4/6/2026 to 4/13/2026",
-  updates: [
-    { time: "2026-04-06 10:00", text: "Server rebooted after library update." }
-  ]
-}
+
+async function loadStatus(){
+
+const res = await fetch('status.json')
+const data = await res.json()
 
 const statusBox = document.getElementById("statusBox")
 const statusTitle = document.getElementById("statusTitle")
@@ -64,18 +125,33 @@ const statusMessage = document.getElementById("statusMessage")
 const maintenanceWindow = document.getElementById("maintenanceWindow")
 const updates = document.getElementById("updates")
 
-statusBox.classList.add(statusData.status)
-statusTitle.textContent = statusData.title
-statusMessage.textContent = statusData.message
-maintenanceWindow.textContent = statusData.maintenanceWindow
+statusBox.classList.add(data.status)
+statusTitle.textContent = data.title
+statusMessage.textContent = data.message
+maintenanceWindow.textContent = data.maintenanceWindow
 
-statusData.updates.forEach(u => {
-  const li = document.createElement("li")
-  li.innerHTML = `<span class="time">${u.time}</span> — ${u.text}`
-  updates.appendChild(li)
+updates.innerHTML = ""
+
+data.updates.forEach(u => {
+
+const div = document.createElement("div")
+div.className = "update"
+
+div.innerHTML = `
+<div class="time">${u.time}</div>
+<div>${u.text}</div>
+`
+
+updates.appendChild(div)
+
 })
 
 document.getElementById("lastUpdated").textContent = new Date().toLocaleString()
+
+}
+
+loadStatus()
+
 </script>
 
 </body>
