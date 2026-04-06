@@ -1,5 +1,5 @@
 {
-  "status": "operational",
+  "status": "outage",
   "title": "All Systems Operational",
   "message": "The Plex server is running normally.",
   "maintenanceWindow": "Planned outages from 4/6 to 4/13 between 8PM-8AM PST",
