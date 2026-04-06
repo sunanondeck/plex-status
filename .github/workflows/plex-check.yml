@@ -15,7 +15,7 @@ jobs:
       - name: Check Plex
         id: plex
         run: |
-          if curl -s --max-time 10 https://71.146.187.239:32400/web/index.html > /dev/null; then
+          if curl -s --max-time 10 https://71.146.187.239:32400/identity > /dev/null; then
             echo "STATUS=operational" >> $GITHUB_ENV
           else
             echo "STATUS=outage" >> $GITHUB_ENV
