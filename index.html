@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Is Suplex down?</title>
+<title>Suplex Status</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -41,11 +41,7 @@ body{
 
 #content{
   transition: margin-top 0.6s ease;
-  padding-top: 60px; /* default padding for header */
-}
-
-header{
-  padding:0 20px;
+  padding-top: 60px;
 }
 
 .question{
@@ -58,7 +54,12 @@ header{
   font-size:180px;
   font-weight:800;
   margin-top:40px;
-  transition: color 0.5s;
+}
+
+.message{
+  margin-top:25px;
+  font-size:22px;
+  font-weight:600;
 }
 
 .operational{
@@ -67,12 +68,6 @@ header{
 
 .outage{
   color: var(--outage);
-}
-
-.message{
-  margin-top:25px;
-  font-size:22px;
-  opacity:0.9;
 }
 
 footer{
@@ -88,9 +83,8 @@ footer{
 <div id="maintenance-banner"></div>
 
 <div id="content">
-  <header>
-    <div class="question">Is Suplex down?</div>
-  </header>
+
+  <div class="question">Is Suplex down?</div>
 
   <div id="answer" class="answer">...</div>
   <div id="message" class="message"></div>
@@ -98,6 +92,7 @@ footer{
   <footer>
   Last checked: <span id="updated"></span>
   </footer>
+
 </div>
 
 <script>
@@ -110,27 +105,29 @@ async function loadStatus(){
   const banner = document.getElementById("maintenance-banner");
   const content = document.getElementById("content");
 
-  // YES / NO and background color
   if(data.status === "operational"){
       answer.textContent = "NO";
       answer.className = "answer operational";
+
+      message.className = "message operational";
       document.body.style.backgroundColor = "var(--plex-dark)";
   } else {
       answer.textContent = "YES";
       answer.className = "answer outage";
+
+      message.className = "message outage";
       document.body.style.backgroundColor = "#2b0000";
   }
 
   message.textContent = data.message;
 
-  // Sliding banner
   if(data.maintenance && data.maintenance !== "No scheduled maintenance."){
       banner.textContent = "⚠ Scheduled Maintenance: " + data.maintenance;
       banner.style.top = "0px";
-      content.style.marginTop = "60px"; // shift content down
+      content.style.marginTop = "60px";
   } else {
       banner.style.top = "-60px";
-      content.style.marginTop = "0px"; // reset content margin
+      content.style.marginTop = "0px";
   }
 
   document.getElementById("updated").textContent =
