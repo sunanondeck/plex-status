@@ -49,7 +49,7 @@ body{
   font-weight:700;
 }
 
-/* YES / NO box */
+/* Status box */
 .answer{
   font-size:160px;
   font-weight:800;
@@ -60,13 +60,13 @@ body{
   display:inline-block;
 }
 
-/* Server UP */
+/* Server ONLINE */
 .operational{
   color:var(--white);
   border-color:var(--white);
 }
 
-/* Server DOWN */
+/* Server OFFLINE */
 .outage{
   color:var(--down-red);
   border-color:var(--down-red);
@@ -92,7 +92,7 @@ footer{
 
 <div id="content">
 
-<div class="question">Is Suplex down?</div>
+<div class="question">Suplex is:</div>
 
 <div id="answer" class="answer">...</div>
 <div id="message" class="message"></div>
@@ -105,37 +105,42 @@ Last checked: <span id="updated"></span>
 
 <script>
 async function loadStatus(){
-  const res = await fetch('status.json?v=' + Date.now(), {cache:"no-store"});
-  const data = await res.json();
+  try {
+    const res = await fetch('status.json?v=' + Date.now(), {cache:"no-store"});
+    const data = await res.json();
 
-  const answer = document.getElementById("answer");
-  const message = document.getElementById("message");
-  const banner = document.getElementById("maintenance-banner");
-  const content = document.getElementById("content");
+    const answer = document.getElementById("answer");
+    const message = document.getElementById("message");
+    const banner = document.getElementById("maintenance-banner");
+    const content = document.getElementById("content");
 
-  if(data.status === "operational"){
-      answer.textContent = "NO";
-      answer.className = "answer operational";
-      message.className = "message operational";
-  } else {
-      answer.textContent = "YES";
-      answer.className = "answer outage";
-      message.className = "message outage";
+    if(data.status === "operational"){
+        answer.textContent = "ONLINE";
+        answer.className = "answer operational";
+        message.className = "message operational";
+    } else {
+        answer.textContent = "OFFLINE";
+        answer.className = "answer outage";
+        message.className = "message outage";
+    }
+
+    message.textContent = data.message;
+
+    if(data.maintenance && data.maintenance !== "No scheduled maintenance."){
+        banner.textContent = "⚠ Scheduled Maintenance: " + data.maintenance;
+        banner.style.top = "0px";
+        content.style.marginTop = "60px";
+    } else {
+        banner.style.top = "-60px";
+        content.style.marginTop = "0px";
+    }
+
+    document.getElementById("updated").textContent =
+        new Date(data.lastChecked).toLocaleString();
+  } catch (err) {
+    document.getElementById("answer").textContent = "ERROR";
+    document.getElementById("message").textContent = "Status check failed.";
   }
-
-  message.textContent = data.message;
-
-  if(data.maintenance && data.maintenance !== "No scheduled maintenance."){
-      banner.textContent = "⚠ Scheduled Maintenance: " + data.maintenance;
-      banner.style.top = "0px";
-      content.style.marginTop = "60px";
-  } else {
-      banner.style.top = "-60px";
-      content.style.marginTop = "0px";
-  }
-
-  document.getElementById("updated").textContent =
-      new Date(data.lastChecked).toLocaleString();
 }
 
 loadStatus();
