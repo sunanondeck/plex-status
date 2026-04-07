@@ -6,13 +6,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+:root {
+  --plex-orange: #e5a00d;
+  --plex-dark: #141414;
+  --plex-light: #f6f6f6;
+  --operational: #2ecc71;
+  --outage: #ff4d4d;
+}
 
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-  background:#0f0f0f;
-  color:#ffffff;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+  background: var(--plex-dark);
+  color: var(--plex-light);
   text-align:center;
+  transition: background 0.5s;
+  overflow-x: hidden;
+}
+
+/* Sliding maintenance banner */
+#maintenance-banner{
+  position: fixed;
+  top: -60px;
+  left:0;
+  width:100%;
+  background: var(--plex-orange);
+  color: var(--plex-dark);
+  font-weight:700;
+  padding:15px 0;
+  font-size:18px;
+  z-index:9999;
+  transition: top 0.6s ease;
 }
 
 header{
@@ -20,32 +44,34 @@ header{
 }
 
 h1{
-  font-size:42px;
+  font-size:48px;
+  color: var(--plex-orange);
   margin-bottom:10px;
 }
 
 .question{
-  font-size:26px;
+  font-size:28px;
   opacity:0.85;
 }
 
 .answer{
-  font-size:160px;
+  font-size:180px;
   font-weight:800;
   margin-top:40px;
+  transition: color 0.5s;
 }
 
 .operational{
-  color:#2ecc71;
+  color: var(--operational);
 }
 
 .outage{
-  color:#ff4d4d;
+  color: var(--outage);
 }
 
 .message{
   margin-top:25px;
-  font-size:20px;
+  font-size:22px;
   opacity:0.9;
 }
 
@@ -53,25 +79,17 @@ h1{
   margin-top:60px;
 }
 
-.maintenance-box{
-  margin:20px auto;
-  padding:20px;
-  max-width:600px;
-  background:#1b1b1b;
-  border-radius:10px;
-  border:1px solid #2a2a2a;
-}
-
 footer{
   margin-top:60px;
   opacity:0.6;
   font-size:14px;
 }
-
 </style>
 </head>
 
 <body>
+
+<div id="maintenance-banner"></div>
 
 <header>
 <h1>Suplex Status</h1>
@@ -92,26 +110,36 @@ Last checked: <span id="updated"></span>
 </footer>
 
 <script>
-
 async function loadStatus(){
-
   const res = await fetch('status.json?v=' + Date.now(), {cache:"no-store"});
   const data = await res.json();
 
   const answer = document.getElementById("answer");
   const message = document.getElementById("message");
   const maintenance = document.getElementById("maintenance");
+  const banner = document.getElementById("maintenance-banner");
 
+  // YES / NO and background color
   if(data.status === "operational"){
       answer.textContent = "NO";
       answer.className = "answer operational";
+      document.body.style.backgroundColor = "var(--plex-dark)";
   } else {
       answer.textContent = "YES";
       answer.className = "answer outage";
+      document.body.style.backgroundColor = "#2b0000";
   }
 
   message.textContent = data.message;
   maintenance.textContent = data.maintenance;
+
+  // Sliding banner
+  if(data.maintenance && data.maintenance !== "No scheduled maintenance."){
+      banner.textContent = "⚠ Scheduled Maintenance: " + data.maintenance;
+      banner.style.top = "0px";
+  } else {
+      banner.style.top = "-60px";
+  }
 
   document.getElementById("updated").textContent =
       new Date(data.lastChecked).toLocaleString();
@@ -119,7 +147,6 @@ async function loadStatus(){
 
 loadStatus();
 setInterval(loadStatus,60000);
-
 </script>
 
 </body>
