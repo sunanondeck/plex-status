@@ -112,6 +112,24 @@ Last checked: <span id="updated"></span>
 </div>
 
 <script>
+function fetchWithTimeout(url, options={}, timeout=2000){
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
+  ]);
+}
+
+async function checkServerDirectly(){
+  try {
+    await fetchWithTimeout('https://71.146.187.239:32400/identity?v=' + Date.now(), 
+                           {method:'GET', mode:'no-cors', cache:'no-store'}, 
+                           2000);
+    return { status:"operational", message:"Suplex is running normally.", lastChecked:new Date().toISOString() };
+  } catch(e){
+    return null;
+  }
+}
+
 async function fetchStatusJson(){
   try {
     const res = await fetch('status.json?v=' + Date.now(), {cache:"no-store"});
@@ -121,22 +139,23 @@ async function fetchStatusJson(){
   }
 }
 
-async function checkServerDirectly(){
-  try {
-    await fetch('https://71.146.187.239:32400/identity?v=' + Date.now(), {method:'GET', mode:'no-cors', cache:'no-store'});
-    return { status:"operational", message:"Suplex is running normally.", lastChecked:new Date().toISOString() };
-  } catch(e){
-    return null;
-  }
-}
-
 async function updatePage(){
-  let data = await checkServerDirectly();
-  if(!data){
-    data = await fetchStatusJson();
-    if(!data){
-      data = { status:"outage", message:"Suplex is currently unreachable.", lastChecked: new Date().toISOString() };
-    }
+  const now = new Date();
+
+  // Run both fetches in parallel
+  const [serverDataResult, jsonDataResult] = await Promise.allSettled([
+    checkServerDirectly(),
+    fetchStatusJson()
+  ]);
+
+  let data = null;
+
+  if(serverDataResult.status === "fulfilled" && serverDataResult.value){
+    data = serverDataResult.value;
+  } else if(jsonDataResult.status === "fulfilled" && jsonDataResult.value){
+    data = jsonDataResult.value;
+  } else {
+    data = { status:"outage", message:"Suplex is currently unreachable.", lastChecked: now.toISOString() };
   }
 
   const answer = document.getElementById("answer");
@@ -144,7 +163,6 @@ async function updatePage(){
   const banner = document.getElementById("maintenance-banner");
   const content = document.getElementById("content");
   const question = document.querySelector(".question");
-  const now = new Date();
 
   if(data.status === "operational"){
     answer.textContent = "ONLINE";
