@@ -10,10 +10,10 @@
   --plex-orange: #e5a00d;
   --plex-dark: #141414;
   --white: #ffffff;
-  --down-red: #ff4d4d; /* original red for OFFLINE */
+  --down-red: #ff4d4d;
 }
 
-body{
+body {
   margin:0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
   background: var(--plex-dark);
@@ -24,7 +24,7 @@ body{
 }
 
 /* Maintenance banner */
-#maintenance-banner{
+#maintenance-banner {
   position:fixed;
   top:-60px;
   left:0;
@@ -38,64 +38,68 @@ body{
   transition:top 0.6s ease;
 }
 
-#content{
+#content {
   transition:margin-top 0.6s ease;
   padding-top:60px;
 }
 
-.question{
+.question {
   font-size:42px;
-  color: var(--plex-orange);
+  color:var(--plex-orange);
   font-weight:700;
-  margin: 0 10px; /* prevent overflow on small screens */
+  text-decoration: underline;
+  word-break: break-word;
 }
 
-/* Status box */
-.answer{
-  font-size: clamp(50px, 12vw, 160px); /* smaller min for mobile */
+/* YES / NO box */
+.answer {
+  font-size:12vw; /* scales with screen width */
   font-weight:800;
   margin:40px auto 10px auto;
-  padding: clamp(10px, 3vw, 40px) clamp(20px, 10vw, 60px);
+  padding:10px 20px;
   border-radius:20px;
   border:6px solid;
   display:inline-block;
-  max-width: 90%; /* ensure fits screen */
-  box-sizing: border-box;
-  word-break: normal;
-  white-space: nowrap; /* prevent text wrap */
+  max-width:90%;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color 0.3s, border-color 0.3s;
+  transition: font-size 0.2s;
 }
 
 /* Server ONLINE */
-.operational{
+.operational {
   color:var(--white);
   border-color:var(--white);
 }
 
-/* Server OFFLINE box */
-.outage{
+/* Server OFFLINE */
+.outage {
   color:var(--down-red);
   border-color:var(--down-red);
 }
 
-/* OFFLINE message text */
-.offline-message{
-  color: var(--down-red);
-}
-
-.message{
+.message {
   margin-top:20px;
   font-size:22px;
   font-weight:600;
-  transition: color 0.3s;
 }
 
-footer{
+footer {
   margin-top:60px;
   opacity:0.6;
   font-size:14px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .question {
+    font-size:32px;
+  }
+  .answer {
+    font-size:18vw;
+    padding:8px 16px;
+  }
 }
 </style>
 </head>
@@ -105,54 +109,57 @@ footer{
 <div id="maintenance-banner"></div>
 
 <div id="content">
-  <div id="question" class="question">Suplex is:</div>
 
-  <div id="answer" class="answer">...</div>
-  <div id="message" class="message"></div>
+<div class="question">Suplex is:</div>
 
-  <footer>
-  Last checked: <span id="updated"></span>
-  </footer>
+<div id="answer" class="answer">...</div>
+<div id="message" class="message"></div>
+
+<footer>
+Last checked: <span id="updated"></span>
+</footer>
+
 </div>
 
 <script>
 async function loadStatus(){
-  try {
-    const res = await fetch('status.json?v=' + Date.now(), {cache:"no-store"});
-    const data = await res.json();
+  const res = await fetch('status.json?v=' + Date.now(), {cache:"no-store"});
+  const data = await res.json();
 
-    const answer = document.getElementById("answer");
-    const message = document.getElementById("message");
+  const answer = document.getElementById("answer");
+  const message = document.getElementById("message");
+  const banner = document.getElementById("maintenance-banner");
+  const content = document.getElementById("content");
+  const question = document.querySelector(".question");
 
-    if(data.status === "operational"){
-        answer.textContent = "ONLINE";
-        answer.className = "answer operational";
-        message.textContent = data.message;
-        message.className = "message operational";
-    } else {
-        answer.textContent = "OFFLINE";
-        answer.className = "answer outage";
-        message.textContent = data.message;
-        message.className = "message offline-message";
-    }
-
-    const banner = document.getElementById("maintenance-banner");
-    const content = document.getElementById("content");
-    if(data.maintenance && data.maintenance !== "No scheduled maintenance."){
-        banner.textContent = "⚠ Scheduled Maintenance: " + data.maintenance;
-        banner.style.top = "0px";
-        content.style.marginTop = "60px";
-    } else {
-        banner.style.top = "-60px";
-        content.style.marginTop = "0px";
-    }
-
-    document.getElementById("updated").textContent =
-        new Date(data.lastChecked).toLocaleString();
-  } catch (err) {
-    document.getElementById("answer").textContent = "ERROR";
-    document.getElementById("message").textContent = "Status check failed.";
+  if(data.status === "operational"){
+      answer.textContent = "ONLINE";
+      answer.className = "answer operational";
+      message.className = "message operational";
+      question.style.color = "var(--plex-orange)"; // default question color
+  } else {
+      answer.textContent = "OFFLINE";
+      answer.className = "answer outage";
+      message.className = "message outage";
+      question.style.color = "var(--white)"; // question white when offline
   }
+
+  message.textContent = data.message;
+
+  const now = new Date();
+  if(data.maintenance 
+      && data.maintenance !== "No scheduled maintenance." 
+      && (!data.maintenanceExpires || new Date(data.maintenanceExpires) > now)) {
+      banner.textContent = "⚠ Scheduled Maintenance: " + data.maintenance;
+      banner.style.top = "0px";
+      content.style.marginTop = "60px";
+  } else {
+      banner.style.top = "-60px";
+      content.style.marginTop = "0px";
+  }
+
+  document.getElementById("updated").textContent =
+      new Date(data.lastChecked).toLocaleString();
 }
 
 loadStatus();
