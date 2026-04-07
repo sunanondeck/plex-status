@@ -10,7 +10,6 @@
   --plex-orange: #e5a00d;
   --plex-dark: #141414;
   --white: #ffffff;
-  --down-red: #8b0000; /* dark crimson for offline */
 }
 
 body {
@@ -44,7 +43,6 @@ body {
 
 .question {
   font-size:42px;
-  color:var(--plex-orange);
   font-weight:700;
   text-decoration: underline;
   word-break: break-word;
@@ -62,17 +60,17 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: font-size 0.2s;
+  transition: font-size 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .operational {
-  color:var(--white);
-  border-color:var(--white);
+  color: var(--white);
+  border-color: var(--white);
 }
 
 .outage {
-  color:var(--down-red);
-  border-color:var(--down-red);
+  color: var(--plex-orange);
+  border-color: var(--plex-orange);
 }
 
 .message {
@@ -159,13 +157,15 @@ async function updatePage(){
   if(data.status === "operational"){
     answer.textContent = "ONLINE";
     answer.className = "answer operational";
+    message.className = "message operational";
+    question.style.color = "var(--plex-orange)";
   } else {
     answer.textContent = "OFFLINE";
     answer.className = "answer outage";
+    message.className = "message outage";
+    question.style.color = "var(--white)";
   }
 
-  // Keep "Suplex is:" in Plex orange always
-  question.style.color = "var(--plex-orange)";
   message.textContent = data.message;
 
   if(data.maintenance 
