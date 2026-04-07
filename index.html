@@ -10,8 +10,7 @@
   --plex-orange: #e5a00d;
   --plex-dark: #141414;
   --white: #ffffff;
-  --down-red: #ff4d4d;
-  --offline-red: #ff1a1a; /* slightly deeper red for OFFLINE message */
+  --down-red: #ff4d4d; /* original red for OFFLINE */
 }
 
 body{
@@ -46,20 +45,24 @@ body{
 
 .question{
   font-size:42px;
-  color: var(--plex-orange); /* default color */
+  color: var(--plex-orange);
   font-weight:700;
+  margin: 0 10px; /* avoid overflow on mobile */
 }
 
 /* Status box */
 .answer{
-  font-size: clamp(80px, 20vw, 160px); /* responsive font size */
+  font-size: clamp(80px, 20vw, 160px);
   font-weight:800;
   margin:40px auto 10px auto;
-  padding: clamp(15px, 5vw, 40px) clamp(30px, 10vw, 60px);
+  padding: clamp(15px, 5vw, 40px) clamp(20px, 10vw, 60px);
   border-radius:20px;
   border:6px solid;
   display:inline-block;
+  max-width: 90%; /* ensures box fits on mobile */
+  box-sizing: border-box;
   transition: color 0.3s, border-color 0.3s;
+  word-break: break-word;
 }
 
 /* Server ONLINE */
@@ -70,18 +73,13 @@ body{
 
 /* Server OFFLINE box */
 .outage{
-  color:var(--offline-red);
-  border-color:var(--offline-red);
+  color:var(--down-red);
+  border-color:var(--down-red);
 }
 
 /* OFFLINE message text */
 .offline-message{
-  color: var(--offline-red);
-}
-
-/* Keep question white if server is offline */
-.offline #question {
-  color: var(--white) !important;
+  color: var(--down-red);
 }
 
 .message{
@@ -129,13 +127,11 @@ async function loadStatus(){
         answer.className = "answer operational";
         message.textContent = data.message;
         message.className = "message operational";
-        content.classList.remove("offline");
     } else {
         answer.textContent = "OFFLINE";
         answer.className = "answer outage";
         message.textContent = data.message;
         message.className = "message offline-message";
-        content.classList.add("offline"); // question text stays white
     }
 
     const banner = document.getElementById("maintenance-banner");
