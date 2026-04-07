@@ -51,31 +51,20 @@ main{
 
 h1{
   font-size:42px;
-  margin-bottom:20px;
+  margin-bottom:40px;
 }
 
-/* TV container */
+/* Status box */
 
-.tv-container{
-  position:relative;
-  width:460px;
-  max-width:90%;
-  margin:40px auto;
-}
-
-.tv-container svg{
-  width:100%;
-  height:auto;
-}
-
-/* YES / NO text */
-
-.answer{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-58%);
-  font-size:120px;
+.answer-box{
+  width:260px;
+  height:140px;
+  margin:0 auto;
+  border:4px solid white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:90px;
   font-weight:800;
 }
 
@@ -83,17 +72,19 @@ h1{
 
 .operational{
   color:white;
+  border-color:white;
 }
 
 .outage{
   color:#ff4d4d;
+  border-color:#ff4d4d;
 }
 
 /* status message */
 
 #message{
   font-size:20px;
-  margin-top:10px;
+  margin-top:20px;
 }
 
 /* last checked */
@@ -115,42 +106,8 @@ h1{
 
 <h1>Is Suplex down?</h1>
 
-<div class="tv-container">
-
-<svg viewBox="0 0 512 420">
-
-  <!-- antennas -->
-  <line x1="220" y1="40" x2="180" y2="0"
-        stroke="#ffffff" stroke-width="8"
-        stroke-linecap="round"/>
-  <line x1="292" y1="40" x2="332" y2="0"
-        stroke="#ffffff" stroke-width="8"
-        stroke-linecap="round"/>
-
-  <!-- TV bezel -->
-  <rect x="40" y="40" width="432" height="260" rx="36"
-        fill="#1c1c1c"
-        stroke="#ffffff"
-        stroke-width="10"/>
-
-  <!-- screen -->
-  <rect x="80" y="80" width="352" height="180" rx="18"
-        fill="#000000"/>
-
-  <!-- knobs -->
-  <circle cx="440" cy="120" r="10" fill="#ffffff"/>
-  <circle cx="440" cy="150" r="10" fill="#ffffff"/>
-
-  <!-- feet -->
-  <rect x="120" y="300" width="80" height="20"
-        fill="#ffffff" rx="6"/>
-  <rect x="312" y="300" width="80" height="20"
-        fill="#ffffff" rx="6"/>
-
-</svg>
-
-<div id="answer" class="answer">...</div>
-
+<div id="answerBox" class="answer-box">
+<span id="answer">...</span>
 </div>
 
 <div id="message"></div>
@@ -166,29 +123,25 @@ fetch("status.json?nocache=" + Date.now())
 .then(data => {
 
   const answer = document.getElementById("answer");
+  const box = document.getElementById("answerBox");
   const message = document.getElementById("message");
   const checked = document.getElementById("checked");
   const banner = document.getElementById("banner");
 
-  /* YES / NO logic */
-
   if(data.status === "operational"){
       answer.textContent = "NO";
-      answer.className = "answer operational";
+      box.className = "answer-box operational";
+      message.className = "operational";
   } else {
       answer.textContent = "YES";
-      answer.className = "answer outage";
+      box.className = "answer-box outage";
+      message.className = "outage";
   }
 
   message.textContent = data.message;
-  message.className = answer.className;
-
-  /* last checked */
 
   const d = new Date(data.last_checked);
   checked.textContent = "Last checked: " + d.toLocaleString();
-
-  /* maintenance banner */
 
   if(data.banner && data.banner.trim() !== ""){
       banner.textContent = data.banner;
