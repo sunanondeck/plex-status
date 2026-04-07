@@ -1,8 +1,8 @@
-name: Plex Status Check
+name: Suplex Status Check
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 5 minutes
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -12,33 +12,37 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Check Plex server
-        id: plex
+      - name: Check Suplex server
         run: |
-          # Attempt to fetch the Plex identity endpoint (works even without login)
-          if curl -k -s --max-time 30 https://71.146.187.239:32400/identity > /dev/null; then
-            echo "STATUS=operational" >> $GITHUB_ENV
-            echo "TITLE=NO - Plex Server Online" >> $GITHUB_ENV
-            echo "MESSAGE=The Plex server is running normally." >> $GITHUB_ENV
+
+          if curl -k -s --retry 3 --max-time 30 https://71.146.187.239:32400/identity > /dev/null; then
+            STATUS="operational"
+            MESSAGE="Suplex is running normally."
           else
-            echo "STATUS=outage" >> $GITHUB_ENV
-            echo "TITLE=YES - Plex Server Offline" >> $GITHUB_ENV
-            echo "MESSAGE=The Plex server is currently unreachable. Please check back later." >> $GITHUB_ENV
+            STATUS="outage"
+            MESSAGE="Suplex is currently unreachable."
           fi
 
-      - name: Update status.json
-        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
           jq --arg status "$STATUS" \
-             --arg title "$TITLE" \
              --arg message "$MESSAGE" \
-             '.status = $status | .title = $title | .message = $message' \
+             --arg time "$TIMESTAMP" \
+             '.status=$status | .message=$message | .lastChecked=$time' \
              status.json > tmp.json
+
           mv tmp.json status.json
 
-      - name: Commit changes
+      - name: Commit only if status changed
         run: |
           git config --global user.name "status-bot"
           git config --global user.email "actions@github.com"
+
           git add status.json
-          git commit -m "Auto update Plex status" || exit 0
-          git push
+
+          if git diff --cached --quiet; then
+            echo "No status change"
+          else
+            git commit -m "Update Suplex status"
+            git push
+          fi
