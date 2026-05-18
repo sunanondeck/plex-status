@@ -25,8 +25,8 @@ jobs:
 
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          MAINTENANCE="Server will be down nightly from 4/6 to 4/13 between 9pm-9am PST"
-          MAINT_EXPIRES="2026-04-14T09:00:00Z"
+          MAINTENANCE="Server will be down nightly from 5/18 to 5/30 between 9pm-9am PST"
+          MAINT_EXPIRES="2026-05-30T09:00:00Z"
 
           jq --arg status "$STATUS" \
              --arg message "$MESSAGE" \
